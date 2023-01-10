@@ -1,4 +1,4 @@
-module redismutex
+module github.com/itcomusic/redismutex
 
 go 1.19
 
