@@ -2,6 +2,7 @@ package redismutex
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -68,6 +69,10 @@ func (l *Lock) refreshTTL() {
 		case <-time.After(refresh):
 			status, err := scriptRefresh.Run(l.ctx, l.redis, []string{l.key}, l.id, l.ttl.Milliseconds()).Int()
 			if err != nil {
+				if errors.Is(err, context.Canceled) {
+					return
+				}
+
 				refresh = refreshTimeout
 				l.log("[ERROR] %s refresh key %q: %v", l.id, l.key, err)
 				continue
