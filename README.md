@@ -30,8 +30,8 @@ func main() {
 	// init mutex
 	mx := redismutex.NewMutex(rc, "mutex_name")
 	
-	// lock, optionally with dynamic suffix_key
-	lock, ok := mx.Lock(redismutex.WithKey("suffix_key")) // also available RLock, TryLock, TryRLock
+	// lock, optionally add key and lock_key will be "mutex_name:key"
+	lock, ok := mx.Lock(redismutex.WithKey("key")) // also available RLock, TryLock, TryRLock
 	if !ok {
 	    log.Fatalln("could not obtain lock, disconnected from redis?")
 	}
