@@ -26,6 +26,11 @@ func (l *Lock) ID() string {
 	return l.id
 }
 
+// Key returns the key value set by the lock.
+func (l *Lock) Key() string {
+	return l.key
+}
+
 func (l *Lock) Deadline() (deadline time.Time, ok bool) {
 	return l.ctx.Deadline()
 }
