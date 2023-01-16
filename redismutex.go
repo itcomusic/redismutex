@@ -45,10 +45,13 @@ type RWMutex struct {
 
 // NewMutex creates a new distributed mutex.
 func NewMutex(rc redis.Scripter, name string, opt ...MutexOption) *RWMutex {
+	globalMx.RLock()
+	defer globalMx.RUnlock()
+
 	opts := mutexOptions{
 		name: name,
 		ttl:  defaultKeyTTL,
-		log:  logger,
+		log:  globalLog,
 	}
 
 	for _, o := range opt {
@@ -135,6 +138,7 @@ func (m *RWMutex) Lock(opt ...LockOption) (*Lock, bool) {
 	}
 
 	if !errors.Is(err, ErrLock) {
+		m.opts.log("[ERROR] lock key %q: %v", opts.key, err)
 		return nil, false
 	}
 

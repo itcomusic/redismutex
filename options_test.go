@@ -28,14 +28,14 @@ func TestMutexOptions(t *testing.T) {
 func TestLockOptions(t *testing.T) {
 	t.Parallel()
 
-	got := newLockOptions(mutexOptions{name: "mutex", ttl: time.Second, lockIntent: true, log: logger}, WithKey("key"), WithContext(context.Background()))
+	got := newLockOptions(mutexOptions{name: "mutex", ttl: time.Second, lockIntent: true, log: globalLog}, WithKey("key"), WithContext(context.Background()))
 	exp := lockOptions{
 		ctx:              context.Background(),
 		key:              "mutex:key",
 		lockIntentKey:    "mutex:key:lock_intent",
 		enableLockIntent: 1,
 		ttl:              time.Second,
-		log:              logger,
+		log:              globalLog,
 	}
 
 	if reflect.DeepEqual(exp, got) {

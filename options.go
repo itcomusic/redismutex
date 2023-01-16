@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -13,25 +14,30 @@ const (
 	defaultKeyTTL  = time.Second * 4
 )
 
+var (
+	globalMx  sync.RWMutex
+	globalLog = func() LogFunc {
+		l := log.New(os.Stderr, "redismutex: ", log.LstdFlags)
+		return func(format string, v ...any) {
+			l.Printf(format, v...)
+		}
+	}()
+)
+
 // LogFunc type is an adapter to allow the use of ordinary functions as LogFunc.
 type LogFunc func(format string, v ...any)
 
 // NopLog logger does nothing
 var NopLog = LogFunc(func(string, ...any) {})
 
-var logger = func() LogFunc {
-	l := log.New(os.Stderr, "redismutex: ", log.LstdFlags)
-	return func(format string, v ...any) {
-		l.Printf(format, v...)
-	}
-}()
-
 // SetLog sets the logger.
-func SetLog(log LogFunc) {
-	if log == nil {
-		return
+func SetLog(l LogFunc) {
+	globalMx.Lock()
+	defer globalMx.Unlock()
+
+	if l != nil {
+		globalLog = l
 	}
-	logger = log
 }
 
 // MutexOption is the option for the mutex.
