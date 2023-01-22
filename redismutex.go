@@ -170,6 +170,7 @@ func (m *RWMutex) lock(opts lockOptions) (*Lock, time.Duration, error) {
 	}
 
 	pTTL, err := scriptLock.Run(opts.ctx, m.redis, []string{opts.key, opts.lockIntentKey}, id, opts.ttl.Milliseconds(), opts.enableLockIntent).Result()
+	leftTTL := time.Now().Add(opts.ttl)
 	if err == nil {
 		return nil, time.Duration(pTTL.(int64)) * time.Millisecond, ErrLock
 	}
@@ -188,7 +189,7 @@ func (m *RWMutex) lock(opts lockOptions) (*Lock, time.Duration, error) {
 		ctx:    ctx,
 		cancel: cancel,
 	}
-	go lock.refreshTTL()
+	go lock.refreshTTL(leftTTL)
 	return lock, 0, nil
 }
 
@@ -199,7 +200,7 @@ func (m *RWMutex) rlock(opts lockOptions) (*Lock, time.Duration, error) {
 	}
 
 	pTTL, err := scriptRLock.Run(opts.ctx, m.redis, []string{opts.key, opts.lockIntentKey}, id, opts.ttl.Milliseconds()).Result()
-
+	leftTTL := time.Now().Add(opts.ttl)
 	if err == nil {
 		return nil, time.Duration(pTTL.(int64)) * time.Millisecond, ErrLock
 	}
@@ -218,7 +219,7 @@ func (m *RWMutex) rlock(opts lockOptions) (*Lock, time.Duration, error) {
 		ctx:    ctx,
 		cancel: cancel,
 	}
-	go lock.refreshTTL()
+	go lock.refreshTTL(leftTTL)
 	return lock, 0, nil
 }
 

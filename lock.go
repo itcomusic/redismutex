@@ -52,15 +52,14 @@ func (l *Lock) Unlock() {
 	l.cancel()
 	_, err := scriptUnlock.Run(context.Background(), l.redis, []string{l.key}, l.id).Result()
 	if err != nil {
-		l.log("[ERROR] %s unlock %q: %v", l.id, l.key, err)
+		l.log("[ERROR] unlock %q %s: %v", l.key, l.id, err)
 	}
 }
 
-func (l *Lock) refreshTTL() {
+func (l *Lock) refreshTTL(left time.Time) {
 	defer l.cancel()
 
-	refresh := updateTTL(l.ttl)
-	left := time.Now().Add(l.ttl)
+	refresh := l.updateTTL()
 	for {
 		diff := time.Since(left)
 		select {
@@ -79,20 +78,24 @@ func (l *Lock) refreshTTL() {
 				}
 
 				refresh = refreshTimeout
-				l.log("[ERROR] %s refresh key %q: %v", l.id, l.key, err)
+				l.log("[ERROR] refresh key %q %s: %v", l.key, l.id, err)
 				continue
 			}
 
-			refresh = updateTTL(l.ttl)
-			left = time.Now().Add(l.ttl)
+			left = l.leftTTL()
+			refresh = l.updateTTL()
 			if status == 0 {
-				l.log("[ERROR] %s refresh key already expired %q", l.id, l.key)
+				l.log("[ERROR] refresh key %q %s already expired", l.key, l.id)
 				return
 			}
 		}
 	}
 }
 
-func updateTTL(d time.Duration) time.Duration {
-	return d / 2
+func (l *Lock) leftTTL() time.Time {
+	return time.Now().Add(l.ttl)
+}
+
+func (l *Lock) updateTTL() time.Duration {
+	return l.ttl / 2
 }
