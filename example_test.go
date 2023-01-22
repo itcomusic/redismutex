@@ -28,6 +28,7 @@ func Example() {
 	}
 	defer lock.Unlock()
 
+	// lock implements interface context.Context
 	handler := func(ctx context.Context) {
 		select {
 		case <-ctx.Done():
@@ -39,7 +40,7 @@ func Example() {
 	}
 
 	fmt.Printf("lock %q!\n", lock.Key())
-	handler(lock) // lock implements interface context.Context
+	handler(lock)
 
 	// Output:
 	// lock "mutex_name:key"!

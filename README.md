@@ -38,7 +38,8 @@ func main() {
         log.Fatalln("could not obtain lock, disconnected from redis?")
     }
     defer lock.Unlock()
-	
+
+    // lock implements interface context.Context
     handler := func(ctx context.Context) { 
         select {
         case <-ctx.Done():
@@ -50,7 +51,7 @@ func main() {
     }
 
     fmt.Printf("lock %q! \n", lock.Key())
-    handler(lock) // lock implements interface context.Context
+    handler(lock) 
 }
 ```
 
