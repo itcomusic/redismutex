@@ -17,7 +17,7 @@ import (
 	"fmt"
 	"log"
     
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/redis/v9"
 	"github.com/itcomusic/redismutex"
 )
 
